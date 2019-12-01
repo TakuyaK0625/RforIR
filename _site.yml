@@ -1,0 +1,23 @@
+name: "R for Institutional Research"
+navbar:
+  title: "R for Institutional Research"
+  left:
+    - text: "Home"
+      icon: fa-home
+      href: index.Rmd
+    - text: "KAKEN"
+      href: kaken01.Rmd
+    - text: "Ranking"
+    - text: "Misc"
+
+output:
+  html_document:
+    theme: flatly
+    highlight: textmate
+    toc: true
+    toc_float:
+      collapse: false
+    df_print: "tibble"
+    css: site_style.css
+    
+output_dir: "docs"

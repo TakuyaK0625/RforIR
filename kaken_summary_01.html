@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>採件数・総配分額を集計する</title>
+
+<script src="site_libs/jquery-1.12.4/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.3/htmlwidgets.js"></script>
+<link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="site_libs/datatables-binding-0.8/datatables.js"></script>
+<link href="site_libs/dt-core-1.10.16/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="site_libs/dt-core-1.10.16/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="site_libs/dt-core-1.10.16/js/jquery.dataTables.min.js"></script>
+<link href="site_libs/crosstalk-1.0.0/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.0.0/js/crosstalk.min.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="site_style.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 60px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h2 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h3 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h4 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h5 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.section h6 {
+  padding-top: 65px;
+  margin-top: -65px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">R Programming for Institutional Research</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">
+    <span class="fa fa-home"></span>
+     
+    Home
+  </a>
+</li>
+<li>
+  <a href="kaken_home.html">
+    <span class="fa fa-files-o"></span>
+     
+    KAKEN
+  </a>
+</li>
+<li>
+  <a href="ranking_home.html">
+    <span class="fa fa-line-chart"></span>
+     
+    Ranking
+  </a>
+</li>
+<li>
+  <a href="misc_home.html">
+    <span class="fa fa-cube"></span>
+     
+    Misc
+  </a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">採件数・総配分額を集計する</h1>
+
+</div>
+
+
+<p><br></p>
+<div id="はじめに" class="section level2">
+<h2>０. はじめに</h2>
+<p>このページでは科研費の採択件数や総配分額を機関別に集計するコードを紹介します。使用データは平成31年度の科研費新規採択データ（採択後辞退を除く）です（2019年12月1日ダウンロード）。なお、正確に集計しようと思ったら各種の事前処理が必要ですが、今回は綺麗なデータとみなして進めていきます。最終的には以下のようなイカした集計表の出力までを目指します。</p>
+<div id="htmlwidget-db3391196707c303f109" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-db3391196707c303f109">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],["東京大学","京都大学","東北大学","大阪大学","名古屋大学","九州大学","北海道大学","国立研究開発法人理化学研究所","筑波大学","東京工業大学","神戸大学","早稲田大学","慶應義塾大学","広島大学","岡山大学","千葉大学","国立研究開発法人産業技術総合研究所","金沢大学","新潟大学","東京医科歯科大学"],[1975,1348,1096,1102,784,759,742,380,565,368,424,514,499,448,376,357,301,352,303,289],[25448060000,13057110000,11841280000,11520740000,9594970000,7104810000,6710140000,6099080000,4871200000,4229270000,3886920000,3865820000,3765150000,2887502000,2852710000,2408810000,2266310000,2131390000,1993920000,1907900000],[6.18,4.22,3.43,3.45,2.45,2.38,2.32,1.19,1.77,1.15,1.33,1.61,1.56,1.4,1.18,1.12,0.94,1.1,0.95,0.9],[10.65,5.47,4.96,4.82,4.02,2.97,2.81,2.55,2.04,1.77,1.63,1.62,1.58,1.21,1.19,1.01,0.95,0.89,0.83,0.8]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>研究機関<\/th>\n      <th>採択件数<\/th>\n      <th>総配分額合計<\/th>\n      <th>採択件数シェア<\/th>\n      <th>総配分額シェア<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p><br></p>
+</div>
+<div id="下準備" class="section level2">
+<h2>１. 下準備</h2>
+<p>まず、今回の集計のために必要なパッケージを読み込みます。パッケージがインストールされていない場合には、下部の「#」で始まる３つのコードを先に実行してください。</p>
+<pre class="r"><code>library(data.table) # 高速なデータインポートのため
+library(dplyr)      # データの整理のため
+library(DT)         # 集計表の出力のため
+
+# インストールされていない場合は、以下のコマンドの「#」を外して実行
+# install.packages(&quot;data.table&quot;)
+# install.packages(&quot;dplyr&quot;)
+# install.packages(&quot;DT&quot;)</code></pre>
+<p>次に、科研のデータ（kaken_2019_20191201.csv）をインポートします。CSVファイルのインポートには標準でread.csv関数が用意されていますが、この関数では大容量のデータの読み込みに時間がかかります。そのため、今回はdata.tableパッケージのfread関数を使います。この関数はread.csv関数よりも格段に早いため、大容量のデータを扱う際にはとても便利です。</p>
+<pre class="r"><code># 2019年の科研データをインポートして、変数dataに代入
+data &lt;- fread(&quot;kaken_2019_20191201.csv&quot;)</code></pre>
+<p><br></p>
+</div>
+<div id="データの確認" class="section level2">
+<h2>２. データの確認</h2>
+<p>集計作業に入る前に、これから扱うデータの特徴を押さえておきます。まず、データの行数、列数の確認にはdim関数を使います。今回のデータは31957行、40列の構造を持っていることがわかります。</p>
+<pre class="r"><code># データの行数、列数
+dim(data)</code></pre>
+<pre><code>## [1] 31957    40</code></pre>
+<p>次に、各列がどのようなデータを格納しているのかを確認するためにデータの列名を取得します。列名の取得にはnames関数を使います。</p>
+<pre class="r"><code># データの列名を取得
+names(data)</code></pre>
+<pre><code>##  [1] &quot;研究課題名&quot;                    &quot;研究課題名 (英文)&quot;            
+##  [3] &quot;研究課題/領域番号&quot;             &quot;研究期間 (年度)&quot;              
+##  [5] &quot;研究代表者&quot;                    &quot;研究分担者&quot;                   
+##  [7] &quot;連携研究者&quot;                    &quot;研究協力者&quot;                   
+##  [9] &quot;特別研究員&quot;                    &quot;外国人特別研究員&quot;             
+## [11] &quot;受入研究者&quot;                    &quot;キーワード&quot;                   
+## [13] &quot;研究分野&quot;                      &quot;審査区分&quot;                     
+## [15] &quot;研究種目&quot;                      &quot;研究機関&quot;                     
+## [17] &quot;応募区分&quot;                      &quot;総配分額&quot;                     
+## [19] &quot;総配分額 (直接経費)&quot;           &quot;総配分額 (間接経費)&quot;          
+## [21] &quot;各年度配分額&quot;                  &quot;各年度配分額 (直接経費)&quot;      
+## [23] &quot;各年度配分額 (間接経費)&quot;       &quot;現在までの達成度 (区分コード)&quot;
+## [25] &quot;現在までの達成度 (区分)&quot;       &quot;理由&quot;                         
+## [27] &quot;研究開始時の研究の概要&quot;        &quot;研究概要&quot;                     
+## [29] &quot;研究概要 (英文)&quot;               &quot;研究成果の概要&quot;               
+## [31] &quot;研究成果の概要 (英文)&quot;         &quot;研究実績の概要&quot;               
+## [33] &quot;現在までの達成度 (段落)&quot;       &quot;今後の研究の推進方策&quot;         
+## [35] &quot;次年度の研究費の使用計画&quot;      &quot;次年度使用額が生じた理由&quot;     
+## [37] &quot;次年度使用額の使用計画&quot;        &quot;自由記述の分野&quot;               
+## [39] &quot;評価記号&quot;                      &quot;備考&quot;</code></pre>
+<p>上記の通り、研究課題毎に研究代表者が所属する研究機関と総配分額のデータが入っています（16列、18列）。あとは、これらを用いて、各研究機関の採択件数と総配分額の合計値を計算してきます。</p>
+</div>
+<div id="集計作業" class="section level2">
+<h2>３. 集計作業</h2>
+<p><br></p>
+<p>ある列の値ごとに集計を行う場合にはdplyrパッケージのgroup_by関数とsummarize関数の組み合わせが便利です。group_by関数は列名を与えることによって、その列の値ごとにグループ化してくれる関数です（グループ化してくれるだけなので、これだけでは特に何も起こりません）。summarize関数はその名が示す通り、データの要約を行なってくれる関数です。括弧の中には、「新しい変数名 = 関数（集計対象）」という形式で書いていきます。関数には合計（sum）や平均（mean）、最大値（max）、最小値（min）などなど様々な計算を行うことができます。なお、group_by関数でグループ化に用いた列名やsummarize関数で定義した新しい列以外の情報は捨象されます。以下のコードではそれ以外にも、mutate関数を使って総配分額の桁数を落とし、その値を総配分額に上書きしています。Rでは大きな桁の整数型(integer)を扱えないため、桁を落とすか数値型(numeric)への変換が必要です。</p>
+<pre class="r"><code>data %&gt;% 
+
+  # 研究機関ごとにグループ化
+  group_by(研究機関) %&gt;%　
+  
+  # 総配分額の単位を100万円に変換
+  mutate(総配分額 = 総配分額 / 1000000) %&gt;%
+  
+  # 各研究機関で行数の計算（採択件数）、総配分額の合計値の計算（総配分額合計）を実施
+  summarize(採択件数 = n(), 総配分額合計 = sum(総配分額))</code></pre>
+<pre><code>## # A tibble: 1,217 x 3
+##    研究機関                                   採択件数 総配分額合計
+##    &lt;chr&gt;                                         &lt;int&gt;        &lt;dbl&gt;
+##  1 (医)葵鐘会                                        1         0.54
+##  2 (財)古代オリエント博物館                          1         2.73
+##  3 (財)冲中記念成人病研究所                          6        23.5 
+##  4 LEC東京リーガルマインド大学院大学                 2         4.55
+##  5 アカデミオン有限会社                              1         0.42
+##  6 アニコム先進医療研究所株式会社(研究開発課)        2         8.45
+##  7 いわき短期大学                                    1         4.03
+##  8 オムロンサイニックエックス株式会社                1         4.16
+##  9 お茶の水女子大学                                 51       229.  
+## 10 くらしき作陽大学                                  1         4.42
+## # ... with 1,207 more rows</code></pre>
+<p><br></p>
+<p>無事に機関ごとの採択件数と総配分額の合計が計算されましたが、科研費予算は年度によって変動しますので、経年変化を見たい場合には全体に占めるシェアも見ておいた方が良いです。シェアの計算にはmutate</p>
+<pre class="r"><code>data %&gt;% 
+  group_by(研究機関) %&gt;%　
+  mutate(総配分額 = as.numeric(総配分額)) %&gt;%
+  summarize(採択件数 = n(), 総配分額合計 = sum(総配分額)) %&gt;%
+  
+  ## ここから新しい ##
+  
+  # 採択件数、総配分額合計の全国シェアを計算し、それぞれ新しい列を追加（採択件数シェア、総配分額シェア）
+  mutate(採択件数シェア = 採択件数/sum(採択件数), 総配分額シェア = 総配分額合計/sum(総配分額合計)) %&gt;%
+  
+  # それぞれのシェアを％に変換し、四捨五入により小数点第２位までを表示
+  mutate(採択件数シェア = round(採択件数シェア * 100, 2), 総配分額シェア = round(総配分額シェア * 100, 2)) %&gt;%
+  
+  # 総配分額合計の値に従い降順で並び替え
+  arrange(-総配分額合計)</code></pre>
+<pre><code>## # A tibble: 1,217 x 5
+##    研究機関                  採択件数 総配分額合計 採択件数シェア 総配分額シェア
+##    &lt;chr&gt;                        &lt;int&gt;        &lt;dbl&gt;          &lt;dbl&gt;          &lt;dbl&gt;
+##  1 東京大学                      1975  25448060000           6.18          10.6 
+##  2 京都大学                      1348  13057110000           4.22           5.47
+##  3 東北大学                      1096  11841280000           3.43           4.96
+##  4 大阪大学                      1102  11520740000           3.45           4.82
+##  5 名古屋大学                     784   9594970000           2.45           4.02
+##  6 九州大学                       759   7104810000           2.38           2.97
+##  7 北海道大学                     742   6710140000           2.32           2.81
+##  8 国立研究開発法人理化学研究所…      380   6099080000           1.19           2.55
+##  9 筑波大学                       565   4871200000           1.77           2.04
+## 10 東京工業大学                   368   4229270000           1.15           1.77
+## # ... with 1,207 more rows</code></pre>
+</div>
+<div id="表の操作と可視化" class="section level2">
+<h2>４.表の操作と可視化</h2>
+<p><br></p>
+<p>無事に集計表ができましたが、約1200行もある上に見やすいデザインとは言えません。そこで、以下では重要な行だけを抽出して見やすい形式での出力を行います。</p>
+<pre class="r"><code>data %&gt;% 
+  
+  group_by(研究機関) %&gt;%　
+  summarize(採択件数 = n(), 総配分額合計 = sum(総配分額)) %&gt;%
+
+  # ここから
+  
+  arrange(-総配分額合計)</code></pre>
+<pre><code>## # A tibble: 1,217 x 3
+##    研究機関                   採択件数 総配分額合計
+##    &lt;chr&gt;                         &lt;int&gt;        &lt;int&gt;
+##  1 金沢大学                        352   2131390000
+##  2 新潟大学                        303   1993920000
+##  3 東京医科歯科大学                289   1907900000
+##  4 熊本大学                        264   1800130000
+##  5 立命館大学                      263   1559570000
+##  6 横浜国立大学                    141   1537140000
+##  7 順天堂大学                      219   1501950000
+##  8 東京理科大学                    180   1483580000
+##  9 徳島大学                        214   1440100000
+## 10 奈良先端科学技術大学院大学       91   1422430000
+## # ... with 1,207 more rows</code></pre>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

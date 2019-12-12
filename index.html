@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
 
 <meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
 
-<title>index.utf8</title>
+<title>R Programming for Institutional Research</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -86,6 +86,7 @@ code {
 }
 img {
   max-width:100%;
+  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -234,7 +235,6 @@ $(document).ready(function () {
   border: none;
   display: inline-block;
   border-radius: 4px;
-  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -246,6 +246,18 @@ $(document).ready(function () {
   display: none;
 }
 </style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
 
 <!-- code folding -->
 
@@ -314,6 +326,7 @@ $(document).ready(function () {
 
 
 
+<h1 class="title toc-ignore">R Programming for Institutional Research</h1>
 
 </div>
 
@@ -343,7 +356,8 @@ $(document).ready(function () {
 <div class="panel-body">
 <ul>
 <li><a href="https://takuayk.github.io/RforIR/kaken_cleaning_01.html">「研究機関」列のクリーニング</a></li>
-<li><a href="https://takuayk.github.io/RforIR/kaken_cleaning_02.html">「研究代表者」列から情報抽出</a>
+<li><a href="https://takuayk.github.io/RforIR/kaken_cleaning_02.html">「研究代表者」列から情報抽出</a></li>
+<li><a href="https://takuayk.github.io/RforIR/kaken_cleaning_03.html">「研究分担者」列の展開</a>
 </div></li>
 </ul>
 </div>
@@ -381,23 +395,6 @@ $(document).ready(function () {
 
 
 </script>
-
-<!-- tabsets -->
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
-<!-- code folding -->
-
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

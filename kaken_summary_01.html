@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
 
 <meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -27,7 +27,7 @@
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <script src="site_libs/htmlwidgets-1.3/htmlwidgets.js"></script>
 <link href="site_libs/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
-<script src="site_libs/datatables-binding-0.8/datatables.js"></script>
+<script src="site_libs/datatables-binding-0.5/datatables.js"></script>
 <link href="site_libs/dt-core-1.10.16/css/jquery.dataTables.min.css" rel="stylesheet" />
 <link href="site_libs/dt-core-1.10.16/css/jquery.dataTables.extra.css" rel="stylesheet" />
 <script src="site_libs/dt-core-1.10.16/js/jquery.dataTables.min.js"></script>
@@ -97,6 +97,7 @@ code {
 }
 img {
   max-width:100%;
+  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -245,7 +246,6 @@ $(document).ready(function () {
   border: none;
   display: inline-block;
   border-radius: 4px;
-  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -258,9 +258,48 @@ $(document).ready(function () {
 }
 </style>
 
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
 <!-- code folding -->
 
 
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <style type="text/css">
 
@@ -274,12 +313,6 @@ $(document).ready(function () {
 }
 }
 
-@media print {
-.toc-content {
-  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
-  float: right;
-}
-}
 
 .toc-content {
   padding-left: 30px;
@@ -404,14 +437,14 @@ div.tocify {
 
 
 <p><br></p>
-<div id="はじめに" class="section level2">
+<div class="section level2">
 <h2>０. はじめに</h2>
 <p>このページでは科研費の採択件数や総配分額を機関別に集計するコードを紹介します。使用データは平成31年度の科研費新規採択データ（採択後辞退を除く）です（2019年12月1日ダウンロード）。なお、正確に集計しようと思ったら各種の事前処理が必要ですが、今回は綺麗なデータとみなして進めていきます。最終的には以下のようなイカした集計表の出力までを目指します。</p>
-<div id="htmlwidget-0dfd1444f0850d80945e" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-0dfd1444f0850d80945e">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],["東京大学","京都大学","東北大学","大阪大学","名古屋大学","九州大学","北海道大学","国立研究開発法人理化学研究所","筑波大学","東京工業大学","神戸大学","早稲田大学","慶應義塾大学","広島大学","岡山大学","千葉大学","国立研究開発法人産業技術総合研究所","金沢大学","新潟大学","東京医科歯科大学"],[1975,1348,1096,1102,784,759,742,380,565,368,424,514,499,448,376,357,301,352,303,289],[25448060000,13057110000,11841280000,11520740000,9594970000,7104810000,6710140000,6099080000,4871200000,4229270000,3886920000,3865820000,3765150000,2887502000,2852710000,2408810000,2266310000,2131390000,1993920000,1907900000],[6.18,4.22,3.43,3.45,2.45,2.38,2.32,1.19,1.77,1.15,1.33,1.61,1.56,1.4,1.18,1.12,0.94,1.1,0.95,0.9],[10.65,5.47,4.96,4.82,4.02,2.97,2.81,2.55,2.04,1.77,1.63,1.62,1.58,1.21,1.19,1.01,0.95,0.89,0.83,0.8]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>研究機関<\/th>\n      <th>採択件数<\/th>\n      <th>総配分額合計<\/th>\n      <th>採択件数シェア<\/th>\n      <th>総配分額シェア<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-bb0aa38c191f99cf4b7c" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-bb0aa38c191f99cf4b7c">{"x":{"filter":"none","data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"],["東京大学","京都大学","東北大学","大阪大学","名古屋大学","九州大学","北海道大学","国立研究開発法人理化学研究所","筑波大学","東京工業大学","神戸大学","早稲田大学","慶應義塾大学","広島大学","岡山大学","千葉大学","国立研究開発法人産業技術総合研究所","金沢大学","新潟大学","東京医科歯科大学"],[1975,1348,1096,1102,784,759,742,380,565,368,424,514,499,448,376,357,301,352,303,289],[25448060000,13057110000,11841280000,11520740000,9594970000,7104810000,6710140000,6099080000,4871200000,4229270000,3886920000,3865820000,3765150000,2887502000,2852710000,2408810000,2266310000,2131390000,1993920000,1907900000],[6.18,4.22,3.43,3.45,2.45,2.38,2.32,1.19,1.77,1.15,1.33,1.61,1.56,1.4,1.18,1.12,0.94,1.1,0.95,0.9],[10.65,5.47,4.96,4.82,4.02,2.97,2.81,2.55,2.04,1.77,1.63,1.62,1.58,1.21,1.19,1.01,0.95,0.89,0.83,0.8]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>研究機関<\/th>\n      <th>採択件数<\/th>\n      <th>総配分額合計<\/th>\n      <th>採択件数シェア<\/th>\n      <th>総配分額シェア<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[2,3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p><br></p>
 </div>
-<div id="下準備" class="section level2">
+<div class="section level2">
 <h2>１. 下準備</h2>
 <p>まず、今回の集計のために必要なパッケージを読み込みます。パッケージがインストールされていない場合には、下部の「#」で始まる３つのコードを先に実行してください。</p>
 <pre class="r"><code>library(data.table) # 高速なデータインポートのため
@@ -427,7 +460,7 @@ library(DT)         # 集計表の出力のため
 data &lt;- fread(&quot;kaken_2019_20191201.csv&quot;)</code></pre>
 <p><br></p>
 </div>
-<div id="データの確認" class="section level2">
+<div class="section level2">
 <h2>２. データの確認</h2>
 <p>集計作業に入る前に、これから扱うデータの特徴を押さえておきます。まず、データの行数、列数の確認にはdim関数を使います。今回のデータは31957行、40列の構造を持っていることがわかります。</p>
 <pre class="r"><code># データの行数、列数
@@ -458,7 +491,7 @@ names(data)</code></pre>
 ## [39] &quot;評価記号&quot;                      &quot;備考&quot;</code></pre>
 <p>上記の通り、研究課題毎に研究代表者が所属する研究機関と総配分額のデータが入っています（16列、18列）。あとは、これらを用いて、各研究機関の採択件数と総配分額の合計値を計算してきます。</p>
 </div>
-<div id="集計作業" class="section level2">
+<div class="section level2">
 <h2>３. 集計作業</h2>
 <p><br></p>
 <p>ある列の値ごとに集計を行う場合にはdplyrパッケージのgroup_by関数とsummarize関数の組み合わせが便利です。group_by関数は列名を与えることによって、その列の値ごとにグループ化してくれる関数です（グループ化してくれるだけなので、これだけでは特に何も起こりません）。summarize関数はその名が示す通り、データの要約を行なってくれる関数です。括弧の中には、「新しい変数名 = 関数（集計対象）」という形式で書いていきます。関数には合計（sum）や平均（mean）、最大値（max）、最小値（min）などなど様々な計算を行うことができます。なお、group_by関数でグループ化に用いた列名やsummarize関数で定義した新しい列以外の情報は捨象されます。以下のコードではそれ以外にも、mutate関数を使って総配分額の桁数を落とし、その値を総配分額に上書きしています。Rでは大きな桁の整数型(integer)を扱えないため、桁を落とすか数値型(numeric)への変換が必要です。</p>
@@ -485,7 +518,7 @@ names(data)</code></pre>
 ##  8 オムロンサイニックエックス株式会社                1         4.16
 ##  9 お茶の水女子大学                                 51       229.  
 ## 10 くらしき作陽大学                                  1         4.42
-## # ... with 1,207 more rows</code></pre>
+## # … with 1,207 more rows</code></pre>
 <p><br></p>
 <p>無事に機関ごとの採択件数と総配分額の合計が計算されましたが、科研費予算は年度によって変動しますので、経年変化を見たい場合には全体に占めるシェアも見ておいた方が良いです。シェアの計算にはmutate</p>
 <pre class="r"><code>data %&gt;% 
@@ -504,21 +537,21 @@ names(data)</code></pre>
   # 総配分額合計の値に従い降順で並び替え
   arrange(-総配分額合計)</code></pre>
 <pre><code>## # A tibble: 1,217 x 5
-##    研究機関                  採択件数 総配分額合計 採択件数シェア 総配分額シェア
-##    &lt;chr&gt;                        &lt;int&gt;        &lt;dbl&gt;          &lt;dbl&gt;          &lt;dbl&gt;
-##  1 東京大学                      1975  25448060000           6.18          10.6 
-##  2 京都大学                      1348  13057110000           4.22           5.47
-##  3 東北大学                      1096  11841280000           3.43           4.96
-##  4 大阪大学                      1102  11520740000           3.45           4.82
-##  5 名古屋大学                     784   9594970000           2.45           4.02
-##  6 九州大学                       759   7104810000           2.38           2.97
-##  7 北海道大学                     742   6710140000           2.32           2.81
+##    研究機関             採択件数 総配分額合計 採択件数シェア 総配分額シェア
+##    &lt;chr&gt;                   &lt;int&gt;        &lt;dbl&gt;          &lt;dbl&gt;          &lt;dbl&gt;
+##  1 東京大学                 1975  25448060000           6.18          10.6 
+##  2 京都大学                 1348  13057110000           4.22           5.47
+##  3 東北大学                 1096  11841280000           3.43           4.96
+##  4 大阪大学                 1102  11520740000           3.45           4.82
+##  5 名古屋大学                784   9594970000           2.45           4.02
+##  6 九州大学                  759   7104810000           2.38           2.97
+##  7 北海道大学                742   6710140000           2.32           2.81
 ##  8 国立研究開発法人理化学研究所…      380   6099080000           1.19           2.55
-##  9 筑波大学                       565   4871200000           1.77           2.04
-## 10 東京工業大学                   368   4229270000           1.15           1.77
-## # ... with 1,207 more rows</code></pre>
+##  9 筑波大学                  565   4871200000           1.77           2.04
+## 10 東京工業大学              368   4229270000           1.15           1.77
+## # … with 1,207 more rows</code></pre>
 </div>
-<div id="表の操作と可視化" class="section level2">
+<div class="section level2">
 <h2>４.表の操作と可視化</h2>
 <p><br></p>
 <p>無事に集計表ができましたが、約1200行もある上に見やすいデザインとは言えません。そこで、以下では重要な行だけを抽出して見やすい形式での出力を行います。</p>
@@ -543,7 +576,7 @@ names(data)</code></pre>
 ##  8 東京理科大学                    180   1483580000
 ##  9 徳島大学                        214   1440100000
 ## 10 奈良先端科学技術大学院大学       91   1422430000
-## # ... with 1,207 more rows</code></pre>
+## # … with 1,207 more rows</code></pre>
 </div>
 
 
@@ -564,49 +597,6 @@ $(document).ready(function () {
 });
 
 
-</script>
-
-<!-- tabsets -->
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
-<!-- code folding -->
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

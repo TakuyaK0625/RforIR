@@ -11,7 +11,7 @@
 
 
 
-<title>「研究代表者」列から情報抽出</title>
+<title>「研究分担者」列の展開</title>
 
 <script src="site_libs/jquery-1.12.4/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -431,7 +431,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">「研究代表者」列から情報抽出</h1>
+<h1 class="title toc-ignore">「研究分担者」列の展開</h1>
 
 </div>
 
@@ -439,18 +439,21 @@ div.tocify {
 <p><br></p>
 <div class="section level2">
 <h2>０. はじめに</h2>
-<p>このページはKAKENHIデータベースからダウンロードできるCSVファイルの「研究代表者」列から以下の情報を抽出する方法を紹介していきます。</p>
-<p><br> - 研究者番号の取得<br> - 研究者の職名の取得<br> - 所属部局の取得<br></p>
+<p>このページはKAKENHIデータベースからダウンロードできるCSVファイルの「研究分担者」列をキレイにする方法を紹介していきます。具体的には、複数人の研究者情報が格納されている場合に研究分担者が１人１行になるように展開していきます。</p>
+<p><br> このようなデータを <div id="htmlwidget-0dfd1444f0850d80945e" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-0dfd1444f0850d80945e">{"x":{"filter":"none","data":[["A田 A夫 AA大学, AA学部, 教授 (XXXXXXXX)"],["B山 B介 BB大学, BB学部, 教授 (XXXXXXXX)\\nC本 C子 CC大学, CC研究所, 准教授 (XXXXXXXX)"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>研究代表者<\/th>\n      <th>研究分担者<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script> このようにします。 <div id="htmlwidget-5a069a33a444848eceb8" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-5a069a33a444848eceb8">{"x":{"filter":"none","data":[["A田 A夫 AA大学, AA学部, 教授 (XXXXXXXX)","A田 A夫 AA大学, AA学部, 教授 (XXXXXXXX)"],["B山 B介 BB大学, BB学部, 教授 (XXXXXXXX)","C本 C子 CC大学, CC研究所, 准教授 (XXXXXXXX)"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>研究代表者<\/th>\n      <th>研究分担者<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script></p>
 <p><br></p>
 </div>
 <div class="section level2">
 <h2>１. 下準備</h2>
-<p>必要なパッケージとデータは以下の通りです。今回は2019年度の全採択課題を用います（kaken_2019_20191201.csv）。</p>
+<p>必要なパッケージは以下の通りです。個人情報が多いため、サイト上では結果を表示させませんが、2019年度の採択課題を想定して進めていきます。</p>
 <pre class="r"><code># パッケージの読み込み
 library(data.table)   # 高速なデータインポートのため
 library(dplyr)        # データの整理のため
 library(DT)           # 集計表の出力のため
 library(stringr)      # 文字列操作のため
+library(tidyr)        # 入れ子構造の解除のため
 
 # インストールされていない場合は、以下のコマンドの「#」を外して実行
 # install.packages(&quot;data.table&quot;)
@@ -458,123 +461,73 @@ library(stringr)      # 文字列操作のため
 # install.packages(&quot;DT&quot;)
 # install.packages(&quot;stringr&quot;)
 
-
-# 使用するデータのインポート
 d &lt;- fread(&quot;kaken_2019_20191201.csv&quot;)</code></pre>
 <p><br></p>
 </div>
 <div class="section level2">
 <h2>２. パターンの確認</h2>
-<p>まず、研究代表者列に入っているデータのパターンを確認しておきます。個人情報満載なのでサイト上ではコードを実行しませんが、概ね、以下のようなパターンでデータが格納されているのではないかと思われます。</p>
-<p><br> 「苗字 名前 所属機関, 所属部局, 職名 (研究者番号)」</p>
-<p><br></p>
-<pre class="r"><code>d %&gt;% select(&quot;研究代表者&quot;)  %&gt;%
-  datatable()</code></pre>
+<p>まず、研究分担者列に入っている値の形式を確認しておきます。基本的には研究代表者と同様の形式で値が格納されていますが、研究分担者が複数いる場合には「\n」によって区切られているようです。 <br></p>
+<pre class="r"><code>d %&gt;% 
+  select(&quot;研究分担者&quot;)  %&gt;%       # 研究分担者列のみ抽出
+  filter(研究分担者 != &quot;&quot;) %&gt;%    # 研究分担者が空白ではない行のみ抽出
+  head()                          # 最初の５                          </code></pre>
 <p><br></p>
 </div>
 <div class="section level2">
-<h2>３. 研究者番号の抽出</h2>
-<p>研究者番号のパターンは「数字８桁」であり、これを正規表現で表すと「\\d{8}」になります。以下のコードではstr_extract関数により、研究代表者列からこのパターンを抽出しています。なお、研究者番号保有者に限定するため、研究種目から「奨励研究」を除外し、また、研究代表者列が空白でないデータのみを対象にしています。</p>
-<pre class="r"><code>d %&gt;% 
-  
-  # 奨励研究を削除
-  filter(研究種目 == &quot;奨励研究&quot;) %&gt;%  
-  
-  # 研究代表者の列のみ抽出
-  select(研究代表者) %&gt;%
-  
-  # 研究代表者が空白でない行だけ抽出
-  filter(!(研究代表者 == &quot;&quot;)) %&gt;%
-  
-  # 研究代表者列から8桁の数字を抽出し、Res.ID列に格納
-  mutate(Res.ID = str_extract(研究代表者, &quot;\\d{8}&quot;)) %&gt;%
-  
-  datatable()</code></pre>
+<h2>３. 研究分担者列の展開</h2>
+<p>研究分担者列を１人１行に展開するために、以下の２つのステップを経ることにします。言葉で説明しても何のことかよく分からないと思うので、とにかく実行していきます。</p>
+<p><br> 1. 「\n」を区切りに複数の研究分担者を分割（「\n」を含まない値はそのまま）<br> 2. 分割された値がそれぞれ１行となるように縦に展開（残りの列は全てコピー）</p>
 <p><br></p>
-</div>
-<div class="section level2">
-<h2>４. 職名の抽出</h2>
-<p>次に、研究者の職名を抽出します。研究代表者列は「苗字 名前 所属機関, 所属部局, 職名 (研究者番号)」の形式でデータが入っているので、「最後のコンマの直後から「(」の直前まで」が職名を表していると考えられます。この部分を一気に取り出すのは難しいので、以下の２段階に分けて職名を抽出します。<br></p>
-<p><br> 1. 最後のコンマの直後から末尾までの文字列を取得<br> 2. 「（研究者番号）」の削除 <br></p>
-<p>なお、１段階目の処理については、全体を「先頭から最後のコンマまで」のパートとそれ以降のパートに分割し、str_replace関数を用いて２つ目のパートで上書きするような処理を行なっています。</p>
-<pre class="r"><code>d %&gt;% 
-  filter(研究種目 != &quot;奨励研究&quot;) %&gt;%  
-  select(研究代表者) %&gt;%
-  filter(!(研究代表者 == &quot;&quot;)) %&gt;%
+<div class="section level3">
+<h3>３.１. 研究分担者の分割<br></h3>
+<p>文字列の分割にはstringrパッケージのstr_split関数を用います。以下のコードでは「研究分担者」列の値を分割し、「研究分担者２」に格納しています。なお、結果については擬似的なデータを用いた結果を表示しています。</p>
+<pre class="r"><code>d &lt;- d %&gt;%
   
-  # 最後のコンマ直後の文字列から末尾までを取得
-  mutate(職名 = str_replace(研究代表者, &quot;(^.+,)(.+$)&quot;, &quot;\\2&quot;)) %&gt;%
+  # 研究代表者と研究分担者の列のみ抽出
+  select(研究代表者, 研究分担者) %&gt;%
   
-  # 「(研究者番号)」の削除
-  mutate(職名 = str_replace(職名, &quot;\\(\\d{8}\\)&quot;, &quot;&quot;)) %&gt;%
+  # 研究分担者が含まれる行のみ抽出
+  filter(研究分担者 != &quot;&quot;) %&gt;%
   
-  # 前後の空白を削除
-  mutate(職名 = str_trim(職名, side = &quot;both&quot;)) %&gt;%
-  
-  # 職名の列のみ選択
-  select(職名) %&gt;%
-  
-　# 可視化
-  datatable()</code></pre>
-<p><br></p>
-</div>
-<div class="section level2">
-<h2>５. 所属部局の抽出</h2>
-<p>最後に、所属部局を抽出します。所属部局は２つのコンマに挟まれた部分の文字列が該当し、正規表現を用いると「(?&lt;=,).+(?=,)」となります。以下のコードでは、str_extract関数を用いてこの正規表現にマッチする文字列を抽出しています。</p>
-<pre class="r"><code>d %&gt;% 
-  filter(研究種目 != &quot;奨励研究&quot;) %&gt;%  
-  select(研究代表者) %&gt;%
-  filter(!(研究代表者 == &quot;&quot;)) %&gt;%
-  
-  # 「最後のコンマの直後から末尾まで」の文字列を取得
-  mutate(所属部局 = str_extract(研究代表者, &quot;(?&lt;=,).+(?=,)&quot;)) %&gt;%
-  
-  # 前後の空白を削除
-  mutate(所属部局 = str_trim(所属部局, side = &quot;both&quot;)) %&gt;%
-  
-　# 可視化
-  datatable()</code></pre>
-<p><br></p>
-</div>
-<div class="section level2">
-<h2>６. 例外処理</h2>
-<p>職名と所属部局の抽出の例では、研究代表者列にはコンマが２つ含まれていることを前提とし、コンマの位置を手掛かりに抽出を行なってきました。この前提は正しかったのでしょうか。以下のコードでは研究代表者列の各値に含まれるコンマの数を取得し、コンマの数ごとに何行のデータがあるのかを集計しています。</p>
-<pre class="r"><code>d %&gt;% 
-  filter(研究種目 != &quot;奨励研究&quot;) %&gt;%  
-  select(研究代表者) %&gt;%
-  filter(!(研究代表者 == &quot;&quot;)) %&gt;%
-  
-  # 研究代表者に含まれるコンマの数をN_comma列に格納
-  mutate(N_comma = str_count(研究代表者, &quot;,&quot;)) %&gt;%
-  
-  # コンマの数によってデータのグループ化
-  group_by(N_comma) %&gt;%
-  
-  # 各グループの行数を集計
-  summarize(N = n()) %&gt;%
-  
-　# 可視化
-  datatable()</code></pre>
-<div id="htmlwidget-db3391196707c303f109" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-db3391196707c303f109">{"x":{"filter":"none","data":[["1","2"],[1,2],[3,28932]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>N_comma<\/th>\n      <th>N<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[1,2]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
-<p>残念ながら今まで対象としてきたデータにはコンマが１つしかないデータが存在しているようです。これらのデータについては上記で紹介してきた方法は適用できませんので、例外処理を行います。以下のコードは所属部局を取得するコードを改変したものです。あらかじめ研究代表者列に含まれるコンマの数を取得しておき、コンマの数が２の場合は上記の処理を、それ以外の場合は「NA」を格納しています。</p>
-<p><br></p>
-<pre class="r"><code>d %&gt;% 
-  filter(研究種目 != &quot;奨励研究&quot;) %&gt;%  
-  select(研究代表者) %&gt;%
-  filter(!(研究代表者 == &quot;&quot;)) %&gt;%
-  
-  # 研究代表者に含まれるコンマの数をN_comma列に格納
-  mutate(N_comma = str_count(研究代表者, &quot;,&quot;)) %&gt;%
+  # 「\\n」を区切りに研究分担者の値を分割し、研究分担者２列に格納
+  mutate(研究分担者２ = str_split(研究分担者, &quot;\n&quot;))
 
-  # コンマの数が２つの時には「最後のコンマ直後から末尾まで」の文字列を取得、それ以外は「NA」
-  mutate(所属部局 = ifelse(N_comma == 2, str_extract(研究代表者, &quot;(?&lt;=,).+(?=,)&quot;), NA)) %&gt;%
+# 研究分担者２列の最初の５行のみを表示
+d %&gt;% select(研究代表者, 研究分担者, 研究分担者２) %&gt;% head()</code></pre>
+<div id="htmlwidget-48ae07629656b2e93aaf" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-48ae07629656b2e93aaf">{"x":{"filter":"none","data":[["A田 A夫 AA大学, AA学部, 教授 (XXXXXXXX)","B山 B太 BB大学, BB学部, 教授 (XXXXXXXX)"],["C山 C介 CC大学, CC学部, 助教 (XXXXXXXX)\\nD本 D子 DD大学, DD研究所, 准教授 (XXXXXXXX)","E川 E江 EE大学, EE学部, 助教 (XXXXXXXX)\\nF沢 F郎 FF大学, FF研究所, 教授 (XXXXXXXX)"],[["C山 C介 CC大学, CC学部, 助教 (XXXXXXXX)","D本 D子 DD大学, DD研究所, 准教授 (XXXXXXXX)"],["E川 E江 EE大学, EE学部, 助教 (XXXXXXXX)","F沢 F郎 FF大学, FF研究所, 教授 (XXXXXXXX)"]]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>研究代表者<\/th>\n      <th>研究分担者<\/th>\n      <th>研究分担者２<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p>上の表を見ても研究分担者列と研究分担者２列に違いはないように見えますが、その中身は大きく異なっています。<br></p>
+<p>以下のコードは研究分担者２列だけ取り出して中身を確認しています。結果の[[1]]や[[2]]は行番号と対応しており、研究分担者が分割されて格納されていることがわかると思います。</p>
+<pre class="r"><code>d %&gt;% 
+  .$研究分担者２ %&gt;%    # 研究分担者２列の取り出し
+  head()                # 最初の５つの値のみ取り出し（※以下の擬似的な結果では２つだけ）</code></pre>
+<pre><code>## [[1]]
+## [1] &quot;C山 C介 CC大学, CC学部, 教授 (XXXXXXXX)&quot;    
+## [2] &quot;D本 D子 DD大学, DD研究所, 准教授 (XXXXXXXX)&quot;
+## 
+## [[2]]
+## [1] &quot;E川 E江 EE大学, EE学部, 助教 (XXXXXXXX)&quot;  
+## [2] &quot;F沢 F郎 FF大学, FF研究所, 教授 (XXXXXXXX)&quot;</code></pre>
+<p><br></p>
+</div>
+<div class="section level3">
+<h3>３.２. 入れ子構造の解除</h3>
+<p>上記の通り、研究分担者２列は、それぞれの値の中に更に値が格納されているという入れ子構造をなしています。この入れ子構造を解除することによって、研究分担者の列を行方向に展開することができます。</p>
+<p>この処理を行ってくれるのがtidyrパッケージのunnest関数です（逆に入れ子構造を作る場合にはnest関数）。</p>
+<pre class="r"><code>d &lt;- d %&gt;%
+  select(研究代表者, 研究分担者) %&gt;%
+  filter(研究分担者 != &quot;&quot;) %&gt;%
+  mutate(研究分担者２ = str_split(研究分担者, &quot;\n&quot;)) %&gt;%
   
-  # 前後の空白を削除
-  mutate(所属部局 = str_trim(所属部局, side = &quot;both&quot;)) %&gt;%
-  
-　# 可視化
-  datatable()</code></pre>
+  # 入れ子構造を解除  
+  unnest()
+
+# 研究分担者２列の最初の５行のみを表示
+d %&gt;% select(研究代表者, 研究分担者, 研究分担者２) %&gt;% head()</code></pre>
+<div id="htmlwidget-e78db0d6701ba60eecf1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-e78db0d6701ba60eecf1">{"x":{"filter":"none","data":[["A田 A夫 AA大学, AA学部, 教授 (XXXXXXXX)","A田 A夫 AA大学, AA学部, 教授 (XXXXXXXX)","B山 B太 BB大学, BB学部, 教授 (XXXXXXXX)","B山 B太 BB大学, BB学部, 教授 (XXXXXXXX)"],["C山 C介 CC大学, CC学部, 教授 (XXXXXXXX)\\nD本 D子 DD大学, DD研究所, 准教授 (XXXXXXXX)","C山 C介 CC大学, CC学部, 教授 (XXXXXXXX)\\nD本 D子 DD大学, DD研究所, 准教授 (XXXXXXXX)","E川 E江 EE大学, EE学部, 助教 (XXXXXXXX)\\nF沢 F郎 FF大学, FF究所, 教授 (XXXXXXXX)","E川 E江 EE大学, EE学部, 助教 (XXXXXXXX)\\nF沢 F郎 FF大学, FF究所, 教授 (XXXXXXXX)"],["C山 C介 CC大学, CC学部, 教授 (XXXXXXXX)","D本 D子 DD大学, DD研究所, 准教授 (XXXXXXXX)","E川 E江 EE大学, EE学部, 助教 (XXXXXXXX)","F沢 F郎 FF大学, FF究所, 教授 (XXXXXXXX)"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>研究代表者<\/th>\n      <th>研究分担者<\/th>\n      <th>研究分担者２<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"dom":"t","order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<p>今回は生の処理結果をお見せできなかったので分かりづらかったと思うのですが、是非、ご自分のPCで試してみてください。</p>
+</div>
 </div>
 
 
